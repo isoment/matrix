@@ -27,14 +27,13 @@ func (m *Matrix[T]) Columns() uint {
 	return m.columns
 }
 
-func (m *Matrix[T]) Data() [][]T {
-	return m.data
-}
-
 /*
 Create a new matrix specifying the size and data
 */
 func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
+	if rows == 0 || columns == 0 {
+		return nil, errors.New("matrix rows and columns must be greater than zero")
+	}
 	if uint(len(data)) != rows {
 		return nil, errors.New("row count mismatch")
 	}
@@ -54,7 +53,10 @@ func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
 /*
 Create a new empty matrix with a given size
 */
-func NewEmptyMatrix[T Element](rows, columns uint) *Matrix[T] {
+func NewEmptyMatrix[T Element](rows, columns uint) (*Matrix[T], error) {
+	if rows == 0 || columns == 0 {
+		return nil, errors.New("matrix rows and columns must be greater than zero")
+	}
 	new := createEmptyMatrix[T](rows, columns)
-	return &new
+	return &new, nil
 }

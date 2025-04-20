@@ -60,8 +60,38 @@ func TestClone(t *testing.T) {
 		}
 
 		// Check the address of the first matrix element in underlying data structure
-		if pointersAreSame(&matrix.Data()[0][0], &new.Data()[0][0]) {
+		if pointersAreSame(&matrix.data[0][0], &new.data[0][0]) {
 			t.Error("underlying data was not deeply cloned")
+		}
+	})
+}
+
+func TestAreSameDimensions(t *testing.T) {
+	t.Run("it returns true if the matrixes are the same dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(1)
+
+		m2, _ := NewEmptyMatrix[int](3, 3)
+		m2.Fill(2)
+
+		same := AreSameDimensions(m1, m2)
+
+		if !same {
+			t.Error("expected true, got false")
+		}
+	})
+
+	t.Run("it returns false if matrixes have different dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(1)
+
+		m2, _ := NewEmptyMatrix[int](6, 6)
+		m2.Fill(2)
+
+		same := AreSameDimensions(m1, m2)
+
+		if same {
+			t.Error("expected false but got true")
 		}
 	})
 }
