@@ -1,20 +1,20 @@
 package matrix
 
 /*
-Check if the given matrixes have the same dimensions
+Check if the given matrixes have the same dimensions. Check...
+- For row, column count equality
+- If they have the same number of rows
+- If they have the same number of columns
 */
 func AreSameDimensions[T Element](a, b *Matrix[T]) bool {
-	// Check for row, column count equality
 	if a.rows != b.rows || a.columns != b.columns {
 		return false
 	}
 
-	// Check if they have the same number of rows
 	if len(a.data) != len(b.data) {
 		return false
 	}
 
-	// Check if they have the same number of columns
 	if len(a.data[0]) != len(b.data[0]) {
 		return false
 	}

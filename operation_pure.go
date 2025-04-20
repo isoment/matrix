@@ -1,9 +1,15 @@
 package matrix
 
+import "errors"
+
 /*
 Perform an addition operation on two matrixes creating a new matrix with the results
 */
-func (m Matrix[T]) Add(a *Matrix[T]) *Matrix[T] {
+func (m Matrix[T]) Add(a *Matrix[T]) (*Matrix[T], error) {
+	if !AreSameDimensions(&m, a) {
+		return nil, errors.New("matrixes must be the same dimensions")
+	}
+
 	rows := uint(len(m.data))
 	columns := uint(len(m.data[0]))
 	result := createEmptyMatrix[T](rows, columns)
@@ -14,7 +20,7 @@ func (m Matrix[T]) Add(a *Matrix[T]) *Matrix[T] {
 		}
 	}
 
-	return &result
+	return &result, nil
 }
 
 /*
