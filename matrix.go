@@ -19,6 +19,11 @@ type Matrix[T Element] struct {
 	data    [][]T
 }
 
+type Location[T Element] struct {
+	position [2]uint
+	value    T
+}
+
 func (m *Matrix[T]) Rows() uint {
 	return m.rows
 }

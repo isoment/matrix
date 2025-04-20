@@ -37,3 +37,29 @@ func (m Matrix[T]) ScalarMultiply(c T) *Matrix[T] {
 
 	return &result
 }
+
+/*
+Search the given matrix for an element. Returns a list of Location with
+position and values and boolean noting if it was found or not.
+*/
+func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
+	var found []Location[T]
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			if m.data[i][j] == element {
+				el := Location[T]{
+					position: [2]uint{i, j},
+					value:    m.data[i][j],
+				}
+				found = append(found, el)
+			}
+		}
+	}
+
+	if len(found) == 0 {
+		return found, false
+	}
+
+	return found, true
+}
