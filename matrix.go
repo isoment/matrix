@@ -1,10 +1,5 @@
 package matrix
 
-import (
-	"errors"
-	"fmt"
-)
-
 /*
 Represents an element in a matrix. Might consider https://pkg.go.dev/golang.org/x/exp/constraints
 for use in the future.
@@ -41,14 +36,14 @@ Create a new matrix specifying the size and data
 */
 func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
 	if rows == 0 || columns == 0 {
-		return nil, errors.New("matrix rows and columns must be greater than zero")
+		return nil, ErrRowColumSize
 	}
 	if uint(len(data)) != rows {
-		return nil, errors.New("row count mismatch")
+		return nil, ErrRowCountMismatch(uint(len(data)), rows)
 	}
 	for i, row := range data {
 		if uint(len(row)) != columns {
-			return nil, fmt.Errorf("column count mismatch in row %d", i)
+			return nil, ErrColumnCountMismatch(i)
 		}
 	}
 
@@ -64,7 +59,7 @@ Create a new empty matrix with a given size
 */
 func NewEmptyMatrix[T Element](rows, columns uint) (*Matrix[T], error) {
 	if rows == 0 || columns == 0 {
-		return nil, errors.New("matrix rows and columns must be greater than zero")
+		return nil, ErrRowColumSize
 	}
 	new := createEmptyMatrix[T](rows, columns)
 	return &new, nil

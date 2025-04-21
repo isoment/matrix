@@ -1,10 +1,8 @@
 package matrix
 
-import "errors"
-
 func (m *Matrix[T]) AddInPlace(a *Matrix[T]) (*Matrix[T], error) {
 	if !AreSameDimensions(m, a) {
-		return nil, errors.New("matrixes must be the same dimensions")
+		return nil, ErrMustBeSameDimensions
 	}
 
 	for i := uint(0); i < m.rows; i++ {

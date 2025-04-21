@@ -1,13 +1,11 @@
 package matrix
 
-import "errors"
-
 /*
 Perform an addition operation on two matrixes creating a new matrix with the results
 */
 func (m Matrix[T]) Add(a *Matrix[T]) (*Matrix[T], error) {
 	if !AreSameDimensions(&m, a) {
-		return nil, errors.New("matrixes must be the same dimensions")
+		return nil, ErrMustBeSameDimensions
 	}
 
 	rows := uint(len(m.data))
