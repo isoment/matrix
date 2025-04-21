@@ -130,3 +130,22 @@ func TestSearch(t *testing.T) {
 		}
 	})
 }
+
+func TestTranspose(t *testing.T) {
+	t.Run("it transposes the matrix", func(t *testing.T) {
+		matrix, _ := NewMatrix(2, 3, [][]int{
+			{1, 2, 3},
+			{4, 5, 6},
+		})
+
+		want, _ := NewMatrix(3, 2, [][]int{
+			{1, 4},
+			{2, 5},
+			{3, 6},
+		})
+
+		got := matrix.Transpose()
+
+		matrixesAreEqual(t, got, want)
+	})
+}

@@ -32,6 +32,10 @@ func (m *Matrix[T]) Columns() uint {
 	return m.columns
 }
 
+func (m Matrix[T]) Size() uint {
+	return m.rows * m.columns
+}
+
 /*
 Create a new matrix specifying the size and data
 */

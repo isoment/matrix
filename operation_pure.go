@@ -63,3 +63,15 @@ func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
 
 	return found, true
 }
+
+func (m Matrix[T]) Transpose() *Matrix[T] {
+	new := createEmptyMatrix[T](m.columns, m.rows)
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			new.data[j][i] = m.data[i][j]
+		}
+	}
+
+	return &new
+}
