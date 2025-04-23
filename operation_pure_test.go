@@ -1,6 +1,8 @@
 package matrix
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestAdd(t *testing.T) {
 	t.Run("it sums a matrix", func(t *testing.T) {
@@ -24,16 +26,11 @@ func TestAdd(t *testing.T) {
 	})
 
 	t.Run("it errors if the matrixes have different dimensions", func(t *testing.T) {
-		m1, _ := NewMatrix(3, 3, [][]float32{
-			{1, 2, 3},
-			{10, 25, 50},
-			{99, 5, 32},
-		})
+		m1, _ := NewEmptyMatrix[float32](3, 3)
+		m1.Fill(3)
 
-		m2, _ := NewMatrix(2, 2, [][]float32{
-			{1, 2},
-			{1, 2},
-		})
+		m2, _ := NewEmptyMatrix[float32](2, 2)
+		m2.Fill(2)
 
 		_, err := m1.Add(m2)
 
@@ -116,12 +113,9 @@ func TestSearch(t *testing.T) {
 	})
 
 	t.Run("it returns false if element not found", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 3, [][]int{
-			{1, 2, 3},
-			{4, 5, 6},
-			{2, 4, 2},
-		})
-		search := 55
+		matrix, _ := NewEmptyMatrix[int8](3, 3)
+		matrix.Fill(31)
+		search := int8(55)
 
 		_, found := matrix.Search(search)
 
@@ -147,5 +141,33 @@ func TestTranspose(t *testing.T) {
 		got := matrix.Transpose()
 
 		matrixesAreEqual(t, got, want)
+	})
+}
+
+func TestSubtract(t *testing.T) {
+	t.Run("it subtracts matrixes", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(4)
+
+		m2 := m1.Clone()
+		m2.Fill(2)
+
+		got, _ := m1.Subtract(m2)
+
+		matrixesAreEqual(t, got, m2)
+	})
+
+	t.Run("it returns an error if matrixes have different dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(4)
+
+		m2, _ := NewEmptyMatrix[int](2, 2)
+		m2.Fill(4)
+
+		_, err := m1.Subtract(m2)
+
+		if err == nil {
+			t.Error("expected error but got none")
+		}
 	})
 }
