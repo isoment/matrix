@@ -1,6 +1,7 @@
 package matrix
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -169,5 +170,63 @@ func TestSubtract(t *testing.T) {
 		if err == nil {
 			t.Error("expected error but got none")
 		}
+	})
+}
+
+func TestFlatten(t *testing.T) {
+	t.Run("it flattens a matrix into a slice", func(t *testing.T) {
+		matrix, _ := NewMatrix(3, 3, [][]int{
+			{1, 2, 3},
+			{44, 5, 6},
+			{13, 4, 98},
+		})
+
+		want := []int{1, 2, 3, 44, 5, 6, 13, 4, 98}
+
+		got := matrix.Flatten()
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("expected %v but got %v", want, got)
+		}
+	})
+}
+
+func TestExpand(t *testing.T) {
+	t.Run("it expands a slice into a new matrix", func(t *testing.T) {
+		s := []int{1, 2, 3, 44, 5, 6, 13, 4, 98}
+
+		want, _ := NewMatrix(3, 3, [][]int{
+			{1, 2, 3},
+			{44, 5, 6},
+			{13, 4, 98},
+		})
+
+		got, _ := ExpandSliceToMatrix(s, 3, 3)
+
+		matrixesAreEqual(t, got, want)
+	})
+
+	t.Run("it returns an error if the slice cannot fit in the matrix dimensions", func(t *testing.T) {
+		s := []int{1, 2, 3, 44, 5, 6, 13, 4, 98}
+
+		_, err := ExpandSliceToMatrix(s, 2, 2)
+
+		if err == nil {
+			t.Error("expected error but got none")
+		}
+	})
+
+	t.Run("it zero fills if the slice is smaller than the new matrix", func(t *testing.T) {
+		s := []int{1, 2, 3, 44, 5, 6, 8}
+
+		want, _ := NewMatrix(3, 3, [][]int{
+			{1, 2, 3},
+			{44, 5, 6},
+			{8, 0, 0},
+		})
+
+		got, _ := ExpandSliceToMatrix(s, 3, 3)
+
+		matrixesAreEqual(t, got, want)
 	})
 }

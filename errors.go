@@ -18,3 +18,6 @@ func ErrColumnCountMismatch(row int) error {
 func ErrRowCountMismatch(dataRows, rows uint) error {
 	return fmt.Errorf("mismatch between data rows: %d and rows param: %d", dataRows, rows)
 }
+func ErrMatrixOverflow(matrixSize, inputSize uint) error {
+	return fmt.Errorf("matrix has size: %d cannot fit input size: %d", matrixSize, inputSize)
+}

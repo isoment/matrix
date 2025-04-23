@@ -91,3 +91,50 @@ func (m Matrix[T]) Transpose() *Matrix[T] {
 
 	return &new
 }
+
+func (m Matrix[T]) Flatten() []T {
+	result := []T{}
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			result = append(result, m.data[i][j])
+		}
+	}
+
+	return result
+}
+
+/*
+Expands a slice into a new matrix of the given dimensions, will return an error if the
+matrix does not have enough space to fit the slice. If there are more elements in the
+new matrix than the input slice the remaining matrix elements will be zero filled.
+*/
+func ExpandSliceToMatrix[T Element](values []T, rows, columns uint) (*Matrix[T], error) {
+	matrixSize := rows * columns
+	inputSize := uint(len(values))
+
+	if inputSize > matrixSize {
+		return nil, ErrMatrixOverflow(matrixSize, inputSize)
+	}
+
+	new, err := NewEmptyMatrix[T](rows, columns)
+
+	if err != nil {
+		return nil, err
+	}
+
+	h := 0
+
+	for i := uint(0); i < new.rows; i++ {
+		for j := uint(0); j < new.columns; j++ {
+			if h < len(values) {
+				new.data[i][j] = values[h]
+				h++
+			} else {
+				break
+			}
+		}
+	}
+
+	return new, nil
+}
