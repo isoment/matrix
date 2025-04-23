@@ -6,17 +6,11 @@ import (
 
 func TestAddInPlace(t *testing.T) {
 	t.Run("it adds matrix modifying the original", func(t *testing.T) {
-		m1, _ := NewMatrix(3, 3, [][]int{
-			{1, 2, 3},
-			{1, 2, 3},
-			{1, 2, 3},
-		})
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(6)
 
-		want, _ := NewMatrix(3, 3, [][]int{
-			{2, 4, 6},
-			{2, 4, 6},
-			{2, 4, 6},
-		})
+		want, _ := NewEmptyMatrix[int](3, 3)
+		want.Fill(12)
 
 		result, _ := m1.AddInPlace(m1)
 
@@ -28,18 +22,48 @@ func TestAddInPlace(t *testing.T) {
 	})
 
 	t.Run("it errors if the matrixes have different dimensions", func(t *testing.T) {
-		m1, _ := NewMatrix(3, 3, [][]int{
-			{1, 2, 3},
-			{1, 2, 3},
-			{1, 2, 3},
-		})
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(8)
 
-		m2, _ := NewMatrix(2, 2, [][]int{
-			{1, 2},
-			{1, 2},
-		})
+		m2, _ := NewEmptyMatrix[int](2, 2)
+		m2.Fill(1)
 
 		_, err := m1.AddInPlace(m2)
+
+		if err == nil {
+			t.Error("expected error but got none")
+		}
+	})
+}
+
+func TestSubtractInPlace(t *testing.T) {
+	t.Run("it subtracts matrixes modifying the original", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(6)
+
+		m2, _ := NewEmptyMatrix[int](3, 3)
+		m2.Fill(2)
+
+		want, _ := NewEmptyMatrix[int](3, 3)
+		want.Fill(4)
+
+		result, _ := m1.SubtractInPlace(m2)
+
+		if !pointersAreSame(result, m1) {
+			t.Error("Expected original matrix and return value to be pointed to the same struct.")
+		}
+
+		matrixesAreEqual(t, m1, want)
+	})
+
+	t.Run("it errors if the matrixes have different dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](3, 3)
+		m1.Fill(8)
+
+		m2, _ := NewEmptyMatrix[int](2, 2)
+		m2.Fill(1)
+
+		_, err := m1.SubtractInPlace(m2)
 
 		if err == nil {
 			t.Error("expected error but got none")
