@@ -1,5 +1,17 @@
 package matrix
 
+/*
+Set a value at the given position. Row i and column j are 0 indexed
+*/
+func (m *Matrix[T]) Set(i, j uint, value T) (*Matrix[T], error) {
+	if i >= m.rows || j >= m.columns {
+		return nil, ErrMatrixOutOfBounds
+	}
+
+	m.data[i][j] = value
+	return m, nil
+}
+
 func (m *Matrix[T]) AddInPlace(a *Matrix[T]) (*Matrix[T], error) {
 	if !AreSameDimensions(m, a) {
 		return nil, ErrMustBeSameDimensions

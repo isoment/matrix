@@ -94,3 +94,27 @@ func TestScalarMultiplyInPlace(t *testing.T) {
 		matrixesAreEqual(t, matrix, want)
 	})
 }
+
+func TestSet(t *testing.T) {
+	t.Run("it sets the element to the given value at the given position", func(t *testing.T) {
+		matrix, _ := NewEmptyMatrix[int](8, 8)
+		matrix.Set(0, 0, 12)
+		matrix.Set(6, 4, 81)
+
+		if matrix.data[0][0] != 12 {
+			t.Errorf("expected 12 but got %d", matrix.data[0][0])
+		}
+
+		if matrix.data[6][4] != 81 {
+			t.Errorf("expected 81 but got %d", matrix.data[0][0])
+		}
+	})
+
+	t.Run("it returns an error when the provided position is out of matrix bounds", func(t *testing.T) {
+		matrix, _ := NewEmptyMatrix[int](4, 4)
+		_, err := matrix.Set(6, 4, 81)
+		if err == nil {
+			t.Error("expected error but got none")
+		}
+	})
+}
