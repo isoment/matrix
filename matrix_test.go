@@ -98,6 +98,25 @@ func TestNewEmptyMatrix(t *testing.T) {
 	})
 }
 
+func TestHasIndex(t *testing.T) {
+	t.Run("it returns true if there is an index", func(t *testing.T) {
+		m, _ := NewEmptyMatrix[int](3, 3)
+		m.index = make(map[int][][2]uint)
+		hasIndex := m.HasIndex()
+		if !hasIndex {
+			t.Error("expected HasIndex to return true, got false")
+		}
+	})
+
+	t.Run("it returns false if there is no index", func(t *testing.T) {
+		m, _ := NewEmptyMatrix[int](3, 3)
+		hasIndex := m.HasIndex()
+		if hasIndex {
+			t.Error("expected HasIndex to return false, got true")
+		}
+	})
+}
+
 func pointersAreSame[T any](a, b *T) bool {
 	if reflect.ValueOf(a).Pointer() == reflect.ValueOf(b).Pointer() {
 		return true
