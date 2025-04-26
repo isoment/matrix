@@ -117,6 +117,54 @@ func TestHasIndex(t *testing.T) {
 	})
 }
 
+func TestIndex(t *testing.T) {
+	t.Run("it creates an index for the matrix", func(t *testing.T) {
+		m, _ := NewMatrix(3, 3, [][]int{
+			{23, 2, 7},
+			{2, 9, 2},
+			{9, 7, 23},
+		})
+
+		err := m.Index()
+		if err != nil {
+			t.Error("got error but expected none")
+		}
+
+		want := map[int][][2]uint{
+			2: {
+				{0, 1},
+				{1, 0},
+				{1, 2},
+			},
+			7: {
+				{0, 2},
+				{2, 1},
+			},
+			9: {
+				{1, 1},
+				{2, 0},
+			},
+			23: {
+				{0, 0},
+				{2, 2},
+			},
+		}
+
+		if !reflect.DeepEqual(want, m.index) {
+			t.Errorf("want %v, got %v", want, m.index)
+		}
+	})
+
+	t.Run("it returns an error if the matrix has an index", func(t *testing.T) {
+		m, _ := NewEmptyMatrix[int](3, 3)
+		m.index = make(map[int][][2]uint)
+		err := m.Index()
+		if err == nil {
+			t.Error("expected error but got none")
+		}
+	})
+}
+
 func pointersAreSame[T any](a, b *T) bool {
 	if reflect.ValueOf(a).Pointer() == reflect.ValueOf(b).Pointer() {
 		return true

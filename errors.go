@@ -5,11 +5,11 @@ import (
 	"fmt"
 )
 
-// Some errors don't need any additional formatted data
 var (
 	ErrRowColumSize         = errors.New("rows and columns must be greater than zero")
 	ErrMustBeSameDimensions = errors.New("matrixes must be the same dimensions")
 	ErrMatrixOutOfBounds    = errors.New("provided position exceeds matrix dimensions")
+	ErrIndexExists          = errors.New("matrix already has an index")
 )
 
 func ErrColumnCountMismatch(row int) error {

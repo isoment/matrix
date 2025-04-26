@@ -8,7 +8,7 @@ type Element interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
 }
 
-// The index is an optional field to help speed up searching when needed
+// The index is an optional field to help speed lookup when needed
 type Matrix[T Element] struct {
 	rows    uint
 	columns uint
@@ -75,6 +75,30 @@ func NewEmptyMatrix[T Element](rows, columns uint) (*Matrix[T], error) {
 	return &new, nil
 }
 
-func (m *Matrix[T]) Index() {
+/*
+Build an index of the matrix for cases where quicker lookup might be desired. Adds
+overhead for index storage and maintenance.
+*/
+func (m *Matrix[T]) Index() error {
+	if m.HasIndex() {
+		return ErrIndexExists
+	}
 
+	index := make(map[T][][2]uint)
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			element := m.data[i][j]
+
+			v, ok := index[element]
+			if ok {
+				index[element] = append(v, [2]uint{i, j})
+			} else {
+				index[element] = [][2]uint{{i, j}}
+			}
+		}
+	}
+
+	m.index = index
+	return nil
 }
