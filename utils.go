@@ -52,15 +52,21 @@ func (m Matrix[T]) Clone() *Matrix[T] {
 }
 
 func createEmptyMatrix[T Element](rows, columns uint) Matrix[T] {
-	matrix := make([][]T, rows)
+	data := make([][]T, rows)
 
 	for h := uint(0); h < rows; h++ {
-		matrix[h] = make([]T, columns)
+		data[h] = make([]T, columns)
 	}
 
-	return Matrix[T]{
+	matrix := Matrix[T]{
 		rows:    rows,
 		columns: columns,
-		data:    matrix,
+		data:    data,
 	}
+
+	matrix.readFunc = func(i, j uint) T {
+		return matrix.data[i][j]
+	}
+
+	return matrix
 }

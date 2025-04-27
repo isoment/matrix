@@ -124,6 +124,45 @@ func TestSearch(t *testing.T) {
 			t.Error("expected found to be false, got true")
 		}
 	})
+
+	t.Run("it searches using index without accessing data field", func(t *testing.T) {
+		matrix, _ := NewMatrix(3, 3, [][]int{
+			{1, 2, 3},
+			{4, 5, 6},
+			{2, 4, 2},
+		})
+
+		matrix.index = map[int][][2]uint{
+			2: {{0, 1}, {2, 0}, {2, 2}},
+		}
+
+		readDetected := false
+
+		/*
+			We can create a spy readFunc. If the the Search reads the underlying
+			data field on the matrix this will be true. It should be false if the
+			index is used.
+		*/
+		matrix.readFunc = func(i, j uint) int {
+			readDetected = true
+			return matrix.data[i][j]
+		}
+
+		search := 2
+		result, found := matrix.Search(search)
+
+		if !found {
+			t.Error("expected found to be true, got false")
+		}
+
+		if len(result) != 3 {
+			t.Errorf("expected 3 found elements, got %d", len(result))
+		}
+
+		if readDetected {
+			t.Error("expected no read from data, but data was accessed")
+		}
+	})
 }
 
 func TestTranspose(t *testing.T) {

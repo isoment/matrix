@@ -61,12 +61,28 @@ position and values and boolean noting if it was found or not.
 func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
 	var found []Location[T]
 
+	if m.HasIndex() {
+		indexResult, ok := m.index[element]
+
+		if ok {
+			for _, v := range indexResult {
+				found = append(found, Location[T]{
+					position: v,
+					value:    element,
+				})
+			}
+			return found, true
+		} else {
+			return found, false
+		}
+	}
+
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
 			if m.data[i][j] == element {
 				el := Location[T]{
 					position: [2]uint{i, j},
-					value:    m.data[i][j],
+					value:    m.readFunc(i, j),
 				}
 				found = append(found, el)
 			}

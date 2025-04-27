@@ -174,7 +174,16 @@ func pointersAreSame[T any](a, b *T) bool {
 
 func matrixesAreEqual[T Element](t *testing.T, a, b *Matrix[T]) {
 	t.Helper()
-	if !reflect.DeepEqual(a, b) {
+
+	// Create shallow copies
+	copyA := *a
+	copyB := *b
+
+	// Ignore readFunc field since these will never be equal
+	copyA.readFunc = nil
+	copyB.readFunc = nil
+
+	if !reflect.DeepEqual(copyA, copyB) {
 		t.Errorf("%+v does not equal %+v", a, b)
 	}
 }

@@ -14,6 +14,8 @@ type Matrix[T Element] struct {
 	columns uint
 	data    [][]T
 	index   map[T][][2]uint
+
+	readFunc func(i, j uint) T
 }
 
 // The position field is the row, column coordinates 0 indexed
@@ -57,11 +59,17 @@ func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
 		}
 	}
 
-	return &Matrix[T]{
+	matrix := &Matrix[T]{
 		rows:    rows,
 		columns: columns,
 		data:    data,
-	}, nil
+	}
+
+	matrix.readFunc = func(i, j uint) T {
+		return matrix.data[i][j]
+	}
+
+	return matrix, nil
 }
 
 /*
