@@ -64,9 +64,7 @@ func createEmptyMatrix[T Element](rows, columns uint) Matrix[T] {
 		data:    data,
 	}
 
-	matrix.readFunc = func(i, j uint) T {
-		return matrix.data[i][j]
-	}
+	matrix.reader = &DefaultDataReader[T]{data: matrix.data}
 
 	return matrix
 }

@@ -82,7 +82,7 @@ func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
 			if m.data[i][j] == element {
 				el := Location[T]{
 					position: [2]uint{i, j},
-					value:    m.readFunc(i, j),
+					value:    m.reader.Read(i, j),
 				}
 				found = append(found, el)
 			}

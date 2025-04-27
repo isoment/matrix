@@ -8,6 +8,18 @@ type Element interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
 }
 
+type DataReader[T Element] interface {
+	Read(i, j uint) T
+}
+
+type DefaultDataReader[T Element] struct {
+	data [][]T
+}
+
+func (d *DefaultDataReader[T]) Read(i, j uint) T {
+	return d.data[i][j]
+}
+
 // The index is an optional field to help speed lookup when needed
 type Matrix[T Element] struct {
 	rows    uint
@@ -15,7 +27,7 @@ type Matrix[T Element] struct {
 	data    [][]T
 	index   map[T][][2]uint
 
-	readFunc func(i, j uint) T
+	reader DataReader[T]
 }
 
 // The position field is the row, column coordinates 0 indexed
@@ -65,9 +77,7 @@ func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
 		data:    data,
 	}
 
-	matrix.readFunc = func(i, j uint) T {
-		return matrix.data[i][j]
-	}
+	matrix.reader = &DefaultDataReader[T]{data: matrix.data}
 
 	return matrix, nil
 }

@@ -5,6 +5,18 @@ import (
 	"testing"
 )
 
+// Create a spy implementation satisfying the DataReader interface
+type SpyReader[T Element] struct {
+	realReader   DataReader[T]
+	readDetected bool
+}
+
+// DataReader interface requires a Read method. We can use readDetected to tell if it was called.
+func (s *SpyReader[T]) Read(i, j uint) T {
+	s.readDetected = true
+	return s.realReader.Read(i, j)
+}
+
 func TestAdd(t *testing.T) {
 	t.Run("it sums a matrix", func(t *testing.T) {
 		m1, _ := NewMatrix(3, 3, [][]float32{
@@ -136,17 +148,8 @@ func TestSearch(t *testing.T) {
 			2: {{0, 1}, {2, 0}, {2, 2}},
 		}
 
-		readDetected := false
-
-		/*
-			We can create a spy readFunc. If the the Search reads the underlying
-			data field on the matrix this will be true. It should be false if the
-			index is used.
-		*/
-		matrix.readFunc = func(i, j uint) int {
-			readDetected = true
-			return matrix.data[i][j]
-		}
+		spy := &SpyReader[int]{realReader: &DefaultDataReader[int]{data: matrix.data}}
+		matrix.reader = spy
 
 		search := 2
 		result, found := matrix.Search(search)
@@ -159,7 +162,7 @@ func TestSearch(t *testing.T) {
 			t.Errorf("expected 3 found elements, got %d", len(result))
 		}
 
-		if readDetected {
+		if spy.readDetected {
 			t.Error("expected no read from data, but data was accessed")
 		}
 	})
