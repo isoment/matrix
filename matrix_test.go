@@ -7,23 +7,26 @@ import (
 
 func TestNewMatrix(t *testing.T) {
 	t.Run("it creates a new matrix", func(t *testing.T) {
-		r, err := NewMatrix(2, 2, [][]float32{
-			{2.4, 9.5},
-			{1.2, 3.45},
-		})
+		input := [][]int{
+			{1, 2},
+			{4, 5},
+		}
+
+		reader := &DefaultDataStore[int]{data: input}
+		r, err := NewMatrix(reader)
 
 		cases := []struct {
-			position []int
-			expected float32
+			position []uint
+			expected int
 		}{
-			{position: []int{0, 0}, expected: 2.4},
-			{position: []int{0, 1}, expected: 9.5},
-			{position: []int{1, 0}, expected: 1.2},
-			{position: []int{1, 1}, expected: 3.45},
+			{position: []uint{0, 0}, expected: 1},
+			{position: []uint{0, 1}, expected: 2},
+			{position: []uint{1, 0}, expected: 4},
+			{position: []uint{1, 1}, expected: 5},
 		}
 
 		for _, v := range cases {
-			actualValue := r.data[v.position[0]][v.position[1]]
+			actualValue := r.reader.Read(v.position[0], v.position[1])
 			if actualValue != v.expected {
 				t.Errorf("expected %v at matrix position %v but got %v", v.expected, v.position, actualValue)
 			}
@@ -32,45 +35,104 @@ func TestNewMatrix(t *testing.T) {
 		if err != nil {
 			t.Error("got an error but expected none")
 		}
-
 	})
 
 	t.Run("it returns an error if the matrix dimensions are 0", func(t *testing.T) {
-		cases := []struct {
-			rows    uint
-			columns uint
-		}{
-			{0, 0},
-			{0, 1},
-			{1, 0},
-		}
+		t.Run("no rows", func(t *testing.T) {
+			var input [][]int
+			reader := &DefaultDataStore[int]{data: input}
 
-		for _, c := range cases {
-			_, err := NewMatrix(c.rows, c.columns, [][]int{})
+			_, err := NewMatrix(reader)
 			if err == nil {
 				t.Error("expected error but got none")
 			}
-		}
-	})
-
-	t.Run("it returns an error if the row count does not match the matrix rows", func(t *testing.T) {
-		_, err := NewMatrix(2, 2, [][]int{
-			{1, 1},
-			{1, 1},
-			{1, 1},
 		})
 
+		t.Run("no columns", func(t *testing.T) {
+			input := make([][]int, 1)
+			input[0] = []int{}
+			reader := &DefaultDataStore[int]{data: input}
+
+			_, err := NewMatrix(reader)
+			if err == nil {
+				t.Error("expected error but got none")
+			}
+		})
+	})
+
+	t.Run("it returns an error for column mismatch", func(t *testing.T) {
+		input := [][]int{
+			{0, 0, 0},
+			{0, 0},
+			{0},
+		}
+		reader := &DefaultDataStore[int]{data: input}
+
+		_, err := NewMatrix(reader)
 		if err == nil {
 			t.Error("expected error but got none")
 		}
 	})
+}
 
-	t.Run("it returns an error if the column count does not match the matrix columns", func(t *testing.T) {
-		_, err := NewMatrix(2, 2, [][]int{
-			{1, 1},
-			{1, 1, 2},
+func TestNewMatrixFromSlice(t *testing.T) {
+	t.Run("it creates a new matrix", func(t *testing.T) {
+		input := [][]float32{
+			{2.4, 9.5},
+			{1.2, 3.45},
+		}
+		r, err := NewMatrixFromSlice(input)
+
+		cases := []struct {
+			position []uint
+			expected float32
+		}{
+			{position: []uint{0, 0}, expected: 2.4},
+			{position: []uint{0, 1}, expected: 9.5},
+			{position: []uint{1, 0}, expected: 1.2},
+			{position: []uint{1, 1}, expected: 3.45},
+		}
+
+		for _, v := range cases {
+			actualValue := r.reader.Read(v.position[0], v.position[1])
+			if actualValue != v.expected {
+				t.Errorf("expected %v at matrix position %v but got %v", v.expected, v.position, actualValue)
+			}
+		}
+
+		if err != nil {
+			t.Error("got an error but expected none")
+		}
+	})
+
+	t.Run("it returns an error if the matrix dimensions are 0", func(t *testing.T) {
+		t.Run("no rows", func(t *testing.T) {
+			var input [][]int
+
+			_, err := NewMatrixFromSlice(input)
+			if err == nil {
+				t.Error("expected error but got none")
+			}
 		})
 
+		t.Run("no columns", func(t *testing.T) {
+			input := make([][]int, 1)
+			input[0] = []int{}
+
+			_, err := NewMatrixFromSlice(input)
+			if err == nil {
+				t.Error("expected error but got none")
+			}
+		})
+	})
+
+	t.Run("it returns an error for column mismatch", func(t *testing.T) {
+		input := [][]int{
+			{0, 0, 0},
+			{0, 0},
+			{0},
+		}
+		_, err := NewMatrixFromSlice(input)
 		if err == nil {
 			t.Error("expected error but got none")
 		}
@@ -81,11 +143,12 @@ func TestNewEmptyMatrix(t *testing.T) {
 	t.Run("it creates a new empty matrix", func(t *testing.T) {
 		got, _ := NewEmptyMatrix[int](3, 3)
 
-		want, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{0, 0, 0},
 			{0, 0, 0},
 			{0, 0, 0},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
 		matrixesAreEqual(t, got, want)
 	})
@@ -119,11 +182,12 @@ func TestHasIndex(t *testing.T) {
 
 func TestIndex(t *testing.T) {
 	t.Run("it creates an index for the matrix", func(t *testing.T) {
-		m, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{23, 2, 7},
 			{2, 9, 2},
 			{9, 7, 23},
-		})
+		}
+		m, _ := NewMatrixFromSlice(input)
 
 		err := m.Index()
 		if err != nil {

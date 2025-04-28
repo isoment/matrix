@@ -17,23 +17,36 @@ func (s *SpyReader[T]) Read(i, j uint) T {
 	return s.realReader.Read(i, j)
 }
 
+func (s *SpyReader[T]) Shape() (rows, columns uint) {
+	return s.realReader.Shape()
+}
+
+func (s *SpyReader[T]) Validate() error {
+	return s.realReader.Validate()
+}
+
 func TestAdd(t *testing.T) {
 	t.Run("it sums a matrix", func(t *testing.T) {
-		m1, _ := NewMatrix(3, 3, [][]float32{
+		input := [][]float32{
 			{1, 2, 3},
 			{10, 25, 50},
 			{99, 5, 32},
-		})
+		}
+		m1, _ := NewMatrixFromSlice(input)
 
-		m2 := m1.Clone()
+		m2, _ := m1.Clone()
 
-		want, _ := NewMatrix(3, 3, [][]float32{
+		input = [][]float32{
 			{2, 4, 6},
 			{20, 50, 100},
 			{198, 10, 64},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
-		got, _ := m1.Add(m2)
+		got, err := m1.Add(m2)
+		if err != nil {
+			t.Error(err)
+		}
 
 		matrixesAreEqual(t, want, got)
 	})
@@ -55,19 +68,24 @@ func TestAdd(t *testing.T) {
 
 func TestScalarMultiply(t *testing.T) {
 	t.Run("it scalar multiplies the given matrix", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 4, [][]int{
+		input := [][]int{
 			{1, 2, 3, 4},
 			{5, 6, 7, 8},
 			{9, 10, 11, 12},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 
-		want, _ := NewMatrix(3, 4, [][]int{
+		input = [][]int{
 			{3, 6, 9, 12},
 			{15, 18, 21, 24},
 			{27, 30, 33, 36},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
-		result := matrix.ScalarMultiply(3)
+		result, err := matrix.ScalarMultiply(3)
+		if err != nil {
+			t.Error(err)
+		}
 
 		matrixesAreEqual(t, result, want)
 	})
@@ -75,11 +93,12 @@ func TestScalarMultiply(t *testing.T) {
 
 func TestSearch(t *testing.T) {
 	t.Run("it searches and returns a single found element", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 4, [][]int{
+		input := [][]int{
 			{1, 2, 3, 4},
 			{5, 6, 7, 8},
 			{9, 10, 11, 12},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 		search := 10
 
 		s, found := matrix.Search(search)
@@ -100,11 +119,12 @@ func TestSearch(t *testing.T) {
 	})
 
 	t.Run("it searches and returns multiple found elements", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{4, 5, 6},
 			{2, 4, 2},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 		search := 2
 
 		s, found := matrix.Search(search)
@@ -118,7 +138,7 @@ func TestSearch(t *testing.T) {
 		}
 
 		for _, v := range s {
-			matrixElement := matrix.data[v.position[0]][v.position[1]]
+			matrixElement := matrix.reader.Read(v.position[0], v.position[1])
 			if matrixElement != v.value {
 				t.Errorf("expected %v at position %v but got %v", v.value, v.position, matrixElement)
 			}
@@ -138,17 +158,20 @@ func TestSearch(t *testing.T) {
 	})
 
 	t.Run("it searches using index without accessing data field", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{4, 5, 6},
 			{2, 4, 2},
-		})
+		}
+		store := &DefaultDataStore[int]{data: input}
+		spy := &SpyReader[int]{realReader: store}
+
+		matrix, _ := NewMatrix(spy)
 
 		matrix.index = map[int][][2]uint{
 			2: {{0, 1}, {2, 0}, {2, 2}},
 		}
 
-		spy := &SpyReader[int]{realReader: &DefaultDataReader[int]{data: matrix.data}}
 		matrix.reader = spy
 
 		search := 2
@@ -170,18 +193,23 @@ func TestSearch(t *testing.T) {
 
 func TestTranspose(t *testing.T) {
 	t.Run("it transposes the matrix", func(t *testing.T) {
-		matrix, _ := NewMatrix(2, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{4, 5, 6},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 
-		want, _ := NewMatrix(3, 2, [][]int{
+		input = [][]int{
 			{1, 4},
 			{2, 5},
 			{3, 6},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
-		got := matrix.Transpose()
+		got, err := matrix.Transpose()
+		if err != nil {
+			t.Error(err)
+		}
 
 		matrixesAreEqual(t, got, want)
 	})
@@ -192,7 +220,7 @@ func TestSubtract(t *testing.T) {
 		m1, _ := NewEmptyMatrix[int](3, 3)
 		m1.Fill(4)
 
-		m2 := m1.Clone()
+		m2, _ := m1.Clone()
 		m2.Fill(2)
 
 		got, _ := m1.Subtract(m2)
@@ -217,11 +245,12 @@ func TestSubtract(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	t.Run("it flattens a matrix into a slice", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{44, 5, 6},
 			{13, 4, 98},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 
 		want := []int{1, 2, 3, 44, 5, 6, 13, 4, 98}
 
@@ -237,11 +266,12 @@ func TestExpand(t *testing.T) {
 	t.Run("it expands a slice into a new matrix", func(t *testing.T) {
 		s := []int{1, 2, 3, 44, 5, 6, 13, 4, 98}
 
-		want, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{44, 5, 6},
 			{13, 4, 98},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
 		got, _ := ExpandSliceToMatrix(s, 3, 3)
 
@@ -261,11 +291,12 @@ func TestExpand(t *testing.T) {
 	t.Run("it zero fills if the slice is smaller than the new matrix", func(t *testing.T) {
 		s := []int{1, 2, 3, 44, 5, 6, 8}
 
-		want, _ := NewMatrix(3, 3, [][]int{
+		input := [][]int{
 			{1, 2, 3},
 			{44, 5, 6},
 			{8, 0, 0},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
 		got, _ := ExpandSliceToMatrix(s, 3, 3)
 

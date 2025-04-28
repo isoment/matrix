@@ -11,11 +11,14 @@ func AreSameDimensions[T Element](a, b *Matrix[T]) bool {
 		return false
 	}
 
-	if len(a.data) != len(b.data) {
+	aRows, aColumns := a.reader.Shape()
+	bRows, bColumns := a.reader.Shape()
+
+	if aRows != bRows {
 		return false
 	}
 
-	if len(a.data[0]) != len(b.data[0]) {
+	if aColumns != bColumns {
 		return false
 	}
 
@@ -33,38 +36,39 @@ Fill a matrix with a given value element
 func (m *Matrix[T]) Fill(v T) *Matrix[T] {
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			m.data[i][j] = v
+			m.writer.Write(i, j, v)
 		}
 	}
 	return m
 }
 
-func (m Matrix[T]) Clone() *Matrix[T] {
-	new := createEmptyMatrix[T](m.rows, m.columns)
+func (m Matrix[T]) Clone() (*Matrix[T], error) {
+	new, err := NewEmptyMatrix[T](m.rows, m.columns)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			new.data[i][j] = m.data[i][j]
+			new.writer.Write(i, j, m.reader.Read(i, j))
 		}
 	}
 
-	return &new
+	return new, nil
 }
 
-func createEmptyMatrix[T Element](rows, columns uint) Matrix[T] {
-	data := make([][]T, rows)
+/*
+Verify that each row has the same number of columns ensuring that the structure
+is a valid matrix
+*/
+func verifyColumnCount[T Element](data [][]T) error {
+	columnsCount := uint(len(data[0]))
 
-	for h := uint(0); h < rows; h++ {
-		data[h] = make([]T, columns)
+	for i, row := range data {
+		if uint(len(row)) != columnsCount {
+			return ErrColumnCountMismatch(i)
+		}
 	}
 
-	matrix := Matrix[T]{
-		rows:    rows,
-		columns: columns,
-		data:    data,
-	}
-
-	matrix.reader = &DefaultDataReader[T]{data: matrix.data}
-
-	return matrix
+	return nil
 }

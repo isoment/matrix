@@ -73,17 +73,19 @@ func TestSubtractInPlace(t *testing.T) {
 
 func TestScalarMultiplyInPlace(t *testing.T) {
 	t.Run("it scalar multiples the given matrix in place", func(t *testing.T) {
-		matrix, _ := NewMatrix(3, 4, [][]int{
+		input := [][]int{
 			{1, 2, 3, 4},
 			{5, 6, 7, 8},
 			{9, 10, 11, 12},
-		})
+		}
+		matrix, _ := NewMatrixFromSlice(input)
 
-		want, _ := NewMatrix(3, 4, [][]int{
+		input = [][]int{
 			{3, 6, 9, 12},
 			{15, 18, 21, 24},
 			{27, 30, 33, 36},
-		})
+		}
+		want, _ := NewMatrixFromSlice(input)
 
 		result := matrix.ScalarMultiplyInPlace(3)
 
@@ -101,12 +103,12 @@ func TestSet(t *testing.T) {
 		matrix.Set(0, 0, 12)
 		matrix.Set(6, 4, 81)
 
-		if matrix.data[0][0] != 12 {
-			t.Errorf("expected 12 but got %d", matrix.data[0][0])
+		if matrix.reader.Read(0, 0) != 12 {
+			t.Errorf("expected 12 but got %d", matrix.reader.Read(0, 0))
 		}
 
-		if matrix.data[6][4] != 81 {
-			t.Errorf("expected 81 but got %d", matrix.data[0][0])
+		if matrix.reader.Read(6, 4) != 81 {
+			t.Errorf("expected 81 but got %d", matrix.reader.Read(6, 4))
 		}
 	})
 

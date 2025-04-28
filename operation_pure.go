@@ -8,17 +8,19 @@ func (m Matrix[T]) Add(a *Matrix[T]) (*Matrix[T], error) {
 		return nil, ErrMustBeSameDimensions
 	}
 
-	rows := uint(len(m.data))
-	columns := uint(len(m.data[0]))
-	result := createEmptyMatrix[T](rows, columns)
+	result, err := NewEmptyMatrix[T](m.rows, m.columns)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			result.data[i][j] = m.data[i][j] + a.data[i][j]
+			newVal := m.reader.Read(i, j) + a.reader.Read(i, j)
+			result.writer.Write(i, j, newVal)
 		}
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 func (m Matrix[T]) Subtract(a *Matrix[T]) (*Matrix[T], error) {
@@ -26,32 +28,38 @@ func (m Matrix[T]) Subtract(a *Matrix[T]) (*Matrix[T], error) {
 		return nil, ErrMustBeSameDimensions
 	}
 
-	rows := uint(len(m.data))
-	columns := uint(len(m.data[0]))
-	result := createEmptyMatrix[T](rows, columns)
+	result, err := NewEmptyMatrix[T](m.rows, m.columns)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			result.data[i][j] = m.data[i][j] - a.data[i][j]
+			newVal := m.reader.Read(i, j) - a.reader.Read(i, j)
+			result.writer.Write(i, j, newVal)
 		}
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 /*
 Performs scalar multiplication on a matrix returning a new result matrix
 */
-func (m Matrix[T]) ScalarMultiply(c T) *Matrix[T] {
-	result := createEmptyMatrix[T](m.rows, m.columns)
+func (m Matrix[T]) ScalarMultiply(c T) (*Matrix[T], error) {
+	result, err := NewEmptyMatrix[T](m.rows, m.columns)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			result.data[i][j] = c * m.data[i][j]
+			newVal := c * m.reader.Read(i, j)
+			result.writer.Write(i, j, newVal)
 		}
 	}
 
-	return &result
+	return result, nil
 }
 
 /*
@@ -79,7 +87,7 @@ func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			if m.data[i][j] == element {
+			if m.reader.Read(i, j) == element {
 				el := Location[T]{
 					position: [2]uint{i, j},
 					value:    m.reader.Read(i, j),
@@ -96,16 +104,19 @@ func (m Matrix[T]) Search(element T) ([]Location[T], bool) {
 	return found, true
 }
 
-func (m Matrix[T]) Transpose() *Matrix[T] {
-	new := createEmptyMatrix[T](m.columns, m.rows)
+func (m Matrix[T]) Transpose() (*Matrix[T], error) {
+	new, err := NewEmptyMatrix[T](m.columns, m.rows)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			new.data[j][i] = m.data[i][j]
+			new.writer.Write(j, i, m.reader.Read(i, j))
 		}
 	}
 
-	return &new
+	return new, nil
 }
 
 func (m Matrix[T]) Flatten() []T {
@@ -113,7 +124,7 @@ func (m Matrix[T]) Flatten() []T {
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			result = append(result, m.data[i][j])
+			result = append(result, m.reader.Read(i, j))
 		}
 	}
 
@@ -144,7 +155,7 @@ func ExpandSliceToMatrix[T Element](values []T, rows, columns uint) (*Matrix[T],
 	for i := uint(0); i < new.rows; i++ {
 		for j := uint(0); j < new.columns; j++ {
 			if h < len(values) {
-				new.data[i][j] = values[h]
+				new.writer.Write(i, j, values[h])
 				h++
 			} else {
 				break

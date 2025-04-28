@@ -8,26 +8,60 @@ type Element interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
 }
 
-type DataReader[T Element] interface {
-	Read(i, j uint) T
-}
-
-type DefaultDataReader[T Element] struct {
+type DefaultDataStore[T Element] struct {
 	data [][]T
 }
 
-func (d *DefaultDataReader[T]) Read(i, j uint) T {
+type DataReader[T Element] interface {
+	Read(i, j uint) T
+	Shape() (rows, columns uint)
+	Validate() error
+}
+
+type DataWriter[T Element] interface {
+	Write(i, j uint, value T)
+}
+
+func (d *DefaultDataStore[T]) Read(i, j uint) T {
 	return d.data[i][j]
+}
+
+// Get the dimensions of the underlying matrix data store
+func (d *DefaultDataStore[T]) Shape() (uint, uint) {
+	if len(d.data) == 0 {
+		return 0, 0
+	}
+	if len(d.data[0]) == 0 {
+		return uint(len(d.data)), 0
+	}
+	return uint(len(d.data)), uint(len(d.data[0]))
+}
+
+// Ensure that the matrix has a valid structure
+func (d *DefaultDataStore[T]) Validate() error {
+	if len(d.data) == 0 || len(d.data[0]) == 0 {
+		return ErrRowColumSize
+	}
+
+	err := verifyColumnCount(d.data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *DefaultDataStore[T]) Write(i, j uint, value T) {
+	d.data[i][j] = value
 }
 
 // The index is an optional field to help speed lookup when needed
 type Matrix[T Element] struct {
 	rows    uint
 	columns uint
-	data    [][]T
 	index   map[T][][2]uint
-
-	reader DataReader[T]
+	reader  DataReader[T]
+	writer  DataWriter[T]
 }
 
 // The position field is the row, column coordinates 0 indexed
@@ -44,42 +78,54 @@ func (m *Matrix[T]) Columns() uint {
 	return m.columns
 }
 
-func (m Matrix[T]) HasIndex() bool {
+func (m *Matrix[T]) HasIndex() bool {
 	if m.index != nil {
 		return true
 	}
 	return false
 }
 
-func (m Matrix[T]) Size() uint {
+func (m *Matrix[T]) Size() uint {
 	return m.rows * m.columns
 }
 
 /*
 Create a new matrix specifying the size and data
 */
-func NewMatrix[T Element](rows, columns uint, data [][]T) (*Matrix[T], error) {
-	if rows == 0 || columns == 0 {
-		return nil, ErrRowColumSize
-	}
-	if uint(len(data)) != rows {
-		return nil, ErrRowCountMismatch(uint(len(data)), rows)
-	}
-	for i, row := range data {
-		if uint(len(row)) != columns {
-			return nil, ErrColumnCountMismatch(i)
-		}
+func NewMatrix[T Element](reader DataReader[T]) (*Matrix[T], error) {
+	rows, columns := reader.Shape()
+
+	err := reader.Validate()
+	if err != nil {
+		return nil, err
 	}
 
 	matrix := &Matrix[T]{
 		rows:    rows,
 		columns: columns,
-		data:    data,
+		reader:  reader,
 	}
 
-	matrix.reader = &DefaultDataReader[T]{data: matrix.data}
+	// Set the DataWriter on the matrix
+	if w, ok := reader.(DataWriter[T]); ok {
+		matrix.writer = w
+	}
 
 	return matrix, nil
+}
+
+func NewMatrixFromSlice[T Element](data [][]T) (*Matrix[T], error) {
+	if len(data) == 0 || len(data[0]) == 0 {
+		return nil, ErrRowColumSize
+	}
+
+	err := verifyColumnCount(data)
+	if err != nil {
+		return nil, err
+	}
+
+	store := &DefaultDataStore[T]{data: data}
+	return NewMatrix(store)
 }
 
 /*
@@ -89,8 +135,14 @@ func NewEmptyMatrix[T Element](rows, columns uint) (*Matrix[T], error) {
 	if rows == 0 || columns == 0 {
 		return nil, ErrRowColumSize
 	}
-	new := createEmptyMatrix[T](rows, columns)
-	return &new, nil
+
+	data := make([][]T, rows)
+	for i := range data {
+		data[i] = make([]T, columns)
+	}
+
+	store := &DefaultDataStore[T]{data: data}
+	return NewMatrix(store)
 }
 
 /*
@@ -106,7 +158,7 @@ func (m *Matrix[T]) Index() error {
 
 	for i := uint(0); i < m.rows; i++ {
 		for j := uint(0); j < m.columns; j++ {
-			element := m.data[i][j]
+			element := m.reader.Read(i, j)
 
 			v, ok := index[element]
 			if ok {
