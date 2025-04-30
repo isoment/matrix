@@ -62,6 +62,28 @@ func (m Matrix[T]) ScalarMultiply(c T) (*Matrix[T], error) {
 	return result, nil
 }
 
+func (m Matrix[T]) Multiply(a *Matrix[T]) (*Matrix[T], error) {
+	// The number of columns in the first matrix must be equal to the number of rows in the second
+	if m.columns != a.rows {
+		return nil, ErrMultiplicationColumnRowMismatch
+	}
+
+	// The new matrix has the number of rows of the first and the number of columns of the second
+	new, _ := NewEmptyMatrix[T](m.rows, a.columns)
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < a.columns; j++ {
+			var sum T
+			for k := uint(0); k < m.columns; k++ {
+				sum += m.reader.Read(i, k) * a.reader.Read(k, j)
+			}
+			new.writer.Write(i, j, sum)
+		}
+	}
+
+	return new, nil
+}
+
 /*
 Search the given matrix for an element. Returns a list of Location with
 position and values and boolean noting if it was found or not.

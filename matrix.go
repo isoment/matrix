@@ -22,6 +22,7 @@ type DataWriter[T Element] interface {
 	Write(i, j uint, value T)
 }
 
+// Read a value from a position in the matrix
 func (d *DefaultDataStore[T]) Read(i, j uint) T {
 	return d.data[i][j]
 }
@@ -51,6 +52,7 @@ func (d *DefaultDataStore[T]) Validate() error {
 	return nil
 }
 
+// Write a value to a position in the matrix
 func (d *DefaultDataStore[T]) Write(i, j uint, value T) {
 	d.data[i][j] = value
 }

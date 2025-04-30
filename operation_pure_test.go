@@ -91,6 +91,46 @@ func TestScalarMultiply(t *testing.T) {
 	})
 }
 
+func TestMultiply(t *testing.T) {
+	t.Run("it returns an error if columns in receiver does not equal rows in param", func(t *testing.T) {
+		a, _ := NewEmptyMatrix[int](3, 4)
+		b, _ := NewEmptyMatrix[int](2, 2)
+
+		_, err := a.Multiply(b)
+		if err == nil {
+			t.Error("expected error but got none")
+		}
+	})
+
+	t.Run("it multiplies the matrixes", func(t *testing.T) {
+		input := [][]int{
+			{1, 2},
+			{3, 4},
+			{5, 6},
+			{7, 8},
+		}
+		a, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{9, 10, 11},
+			{12, 13, 14},
+		}
+		b, _ := NewMatrixFromSlice(input)
+
+		r, _ := a.Multiply(b)
+
+		input = [][]int{
+			{33, 36, 39},
+			{75, 82, 89},
+			{117, 128, 139},
+			{159, 174, 189},
+		}
+		want, _ := NewMatrixFromSlice(input)
+
+		matrixesAreEqual(t, r, want)
+	})
+}
+
 func TestSearch(t *testing.T) {
 	t.Run("it searches and returns a single found element", func(t *testing.T) {
 		input := [][]int{
