@@ -84,6 +84,26 @@ func (m Matrix[T]) Multiply(a *Matrix[T]) (*Matrix[T], error) {
 	return new, nil
 }
 
+func (m Matrix[T]) HadamardProduct(a *Matrix[T]) (*Matrix[T], error) {
+	if !AreSameDimensions(&m, a) {
+		return nil, ErrMustBeSameDimensions
+	}
+
+	new, err := NewEmptyMatrix[T](m.rows, m.columns)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			product := m.reader.Read(i, j) * a.reader.Read(i, j)
+			new.writer.Write(i, j, product)
+		}
+	}
+
+	return new, nil
+}
+
 /*
 Search the given matrix for an element. Returns a list of Location with
 position and values and boolean noting if it was found or not.

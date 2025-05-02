@@ -131,6 +131,42 @@ func TestMultiply(t *testing.T) {
 	})
 }
 
+func TestHadamardProduct(t *testing.T) {
+	t.Run("it returns the Hadamard product of two matrixes", func(t *testing.T) {
+		input := [][]int{
+			{1, 2},
+			{3, 4},
+		}
+		a, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{8, 8},
+			{4, 4},
+		}
+		b, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{8, 16},
+			{12, 16},
+		}
+		want, _ := NewMatrixFromSlice(input)
+
+		r, _ := a.HadamardProduct(b)
+
+		matrixesAreEqual(t, r, want)
+	})
+
+	t.Run("it returns an error if the matrixes don't have the same dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](2, 2)
+		m2, _ := NewEmptyMatrix[int](3, 4)
+
+		_, err := m1.HadamardProduct(m2)
+		if err == nil {
+			t.Error("expected error, got none")
+		}
+	})
+}
+
 func TestSearch(t *testing.T) {
 	t.Run("it searches and returns a single found element", func(t *testing.T) {
 		input := [][]int{
