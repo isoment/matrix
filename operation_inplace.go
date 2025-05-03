@@ -53,3 +53,18 @@ func (m *Matrix[T]) ScalarMultiplyInPlace(c T) *Matrix[T] {
 	}
 	return m
 }
+
+func (m *Matrix[T]) HadamardProductInPlace(a *Matrix[T]) (*Matrix[T], error) {
+	if !AreSameDimensions(m, a) {
+		return nil, ErrMustBeSameDimensions
+	}
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			product := m.reader.Read(i, j) * a.reader.Read(i, j)
+			m.writer.Write(i, j, product)
+		}
+	}
+
+	return m, nil
+}

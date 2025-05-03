@@ -90,10 +90,50 @@ func TestScalarMultiplyInPlace(t *testing.T) {
 		result := matrix.ScalarMultiplyInPlace(3)
 
 		if !pointersAreSame(result, matrix) {
-			t.Error("Expected original matrix and return value to be pointed to the same struct.")
+			t.Error("Expected receiver and return value to be pointed to the same matrix.")
 		}
 
 		matrixesAreEqual(t, matrix, want)
+	})
+}
+
+func TestHadamardProductInPlace(t *testing.T) {
+	t.Run("it returns the Hadamard product of two matrixes in place", func(t *testing.T) {
+		input := [][]int{
+			{1, 2},
+			{3, 4},
+		}
+		a, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{8, 8},
+			{4, 4},
+		}
+		b, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{8, 16},
+			{12, 16},
+		}
+		want, _ := NewMatrixFromSlice(input)
+
+		r, _ := a.HadamardProductInPlace(b)
+
+		matrixesAreEqual(t, r, want)
+
+		if !pointersAreSame(r, a) {
+			t.Error("Expected receiver and return value to be pointed to the same matrix.")
+		}
+	})
+
+	t.Run("it returns an error if the matrixes do not have the same dimensions", func(t *testing.T) {
+		m1, _ := NewEmptyMatrix[int](2, 2)
+		m2, _ := NewEmptyMatrix[int](3, 4)
+
+		_, err := m1.HadamardProductInPlace(m2)
+		if err == nil {
+			t.Error("expected error, got none")
+		}
 	})
 }
 
