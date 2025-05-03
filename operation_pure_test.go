@@ -167,6 +167,39 @@ func TestHadamardProduct(t *testing.T) {
 	})
 }
 
+func TestPower(t *testing.T) {
+	t.Run("it returns the power of the given matrix", func(t *testing.T) {
+		input := [][]int{
+			{1, 2},
+			{3, 4},
+		}
+		a, _ := NewMatrixFromSlice(input)
+
+		input = [][]int{
+			{37, 54},
+			{81, 118},
+		}
+		want, _ := NewMatrixFromSlice(input)
+
+		r, _ := a.Power(3)
+
+		matrixesAreEqual(t, r, want)
+	})
+
+	t.Run("it returns an error if the matrix is not square", func(t *testing.T) {
+		input := [][]int{
+			{1, 2, 9},
+			{3, 4, 8},
+		}
+		a, _ := NewMatrixFromSlice(input)
+
+		_, err := a.Power(3)
+		if err == nil {
+			t.Error("expected error, got none")
+		}
+	})
+}
+
 func TestSearch(t *testing.T) {
 	t.Run("it searches and returns a single found element", func(t *testing.T) {
 		input := [][]int{

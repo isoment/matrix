@@ -161,6 +161,23 @@ func TestNewEmptyMatrix(t *testing.T) {
 	})
 }
 
+func TestNewIdentityMatrix(t *testing.T) {
+	t.Run("it creates an identity matrix of a given size", func(t *testing.T) {
+		r, _ := NewIdentityMatrix[int](5)
+
+		input := [][]int{
+			{1, 0, 0, 0, 0},
+			{0, 1, 0, 0, 0},
+			{0, 0, 1, 0, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 0, 1},
+		}
+		want, _ := NewMatrixFromSlice(input)
+
+		matrixesAreEqual(t, r, want)
+	})
+}
+
 func TestHasIndex(t *testing.T) {
 	t.Run("it returns true if there is an index", func(t *testing.T) {
 		m, _ := NewEmptyMatrix[int](3, 3)

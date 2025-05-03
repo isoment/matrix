@@ -11,6 +11,7 @@ var (
 	ErrMatrixOutOfBounds               = errors.New("provided position exceeds matrix dimensions")
 	ErrIndexExists                     = errors.New("matrix already has an index")
 	ErrMultiplicationColumnRowMismatch = errors.New("param matrix row count must match receiver matrix column count")
+	ErrMatrixMustBeSquare              = errors.New("square matrix required, the columns and rows must be equal")
 )
 
 func ErrColumnCountMismatch(row int) error {

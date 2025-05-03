@@ -1,8 +1,8 @@
 package matrix
 
 /*
-Represents an element in a matrix. Might consider https://pkg.go.dev/golang.org/x/exp/constraints
-for use in the future.
+A generic type constraint representing an element in a matrix. Might consider
+https://pkg.go.dev/golang.org/x/exp/constraints for use in the future.
 */
 type Element interface {
 	int | int8 | int16 | int32 | int64 | uint | uint8 | uint16 | uint32 | uint64 | float32 | float64
@@ -145,6 +145,20 @@ func NewEmptyMatrix[T Element](rows, columns uint) (*Matrix[T], error) {
 
 	store := &DefaultDataStore[T]{data: data}
 	return NewMatrix(store)
+}
+
+func NewIdentityMatrix[T Element](size uint) (*Matrix[T], error) {
+	m, err := NewEmptyMatrix[T](size, size)
+	if err != nil {
+		return nil, err
+	}
+
+	var one T = 1
+	for i := uint(0); i < m.rows; i++ {
+		m.writer.Write(i, i, one)
+	}
+
+	return m, nil
 }
 
 /*

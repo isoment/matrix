@@ -105,6 +105,41 @@ func (m Matrix[T]) HadamardProduct(a *Matrix[T]) (*Matrix[T], error) {
 }
 
 /*
+Return the matrix power of n. Receiver matrix must be a square.
+*/
+func (m Matrix[T]) Power(n uint) (*Matrix[T], error) {
+	if m.rows != m.columns {
+		return nil, ErrMatrixMustBeSquare
+	}
+
+	result, err := NewIdentityMatrix[T](m.rows)
+	if err != nil {
+		return nil, err
+	}
+
+	base, err := m.Clone()
+	if err != nil {
+		return nil, err
+	}
+
+	for n > 0 {
+		if n%2 == 1 {
+			result, err = result.Multiply(base)
+			if err != nil {
+				return nil, err
+			}
+		}
+		base, err = base.Multiply(base)
+		if err != nil {
+			return nil, err
+		}
+		n /= 2
+	}
+
+	return result, nil
+}
+
+/*
 Search the given matrix for an element. Returns a list of Location with
 position and values and boolean noting if it was found or not.
 */
