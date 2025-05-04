@@ -1,6 +1,8 @@
 package matrix
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestZero(t *testing.T) {
 	t.Run("it zeros the given matrix", func(t *testing.T) {
@@ -92,6 +94,79 @@ func TestAreSameDimensions(t *testing.T) {
 
 		if same {
 			t.Error("expected false but got true")
+		}
+	})
+}
+
+func TestIsIdentityMatrix(t *testing.T) {
+	t.Run("it returns false if matrix is not square", func(t *testing.T) {
+		m, _ := NewEmptyMatrix[int](5, 3)
+		m.Fill(4)
+
+		r := m.IsIdentityMatrix()
+
+		if r {
+			t.Error("expected false but got true")
+		}
+	})
+
+	t.Run("it returns true if the matrix is an identity matrix", func(t *testing.T) {
+		input := [][]int{
+			{1, 0, 0, 0, 0},
+			{0, 1, 0, 0, 0},
+			{0, 0, 1, 0, 0},
+			{0, 0, 0, 1, 0},
+			{0, 0, 0, 0, 1},
+		}
+		m, _ := NewMatrixFromSlice(input)
+
+		r := m.IsIdentityMatrix()
+
+		if !r {
+			t.Error("expected true but got false")
+		}
+	})
+
+	t.Run("it returns false if the matrix is not an identity matrix", func(t *testing.T) {
+		cases := []struct {
+			name  string
+			input [][]int
+		}{
+			{
+				name: "case1",
+				input: [][]int{
+					{0, 0, 0},
+					{0, 0, 0},
+					{0, 0, 0},
+				},
+			},
+			{
+				name: "case2",
+				input: [][]int{
+					{1, 3, 2},
+					{5, 1, 2},
+					{6, 3, 1},
+				},
+			},
+			{
+				name: "case3",
+				input: [][]int{
+					{1, 5, 5},
+					{5, 1, 5},
+					{5, 5, 5},
+				},
+			},
+		}
+
+		for _, test := range cases {
+			t.Run(test.name, func(t *testing.T) {
+				m, _ := NewMatrixFromSlice(test.input)
+				r := m.IsIdentityMatrix()
+
+				if r {
+					t.Error("expected false but got true")
+				}
+			})
 		}
 	})
 }

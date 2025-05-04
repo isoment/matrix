@@ -25,6 +25,33 @@ func AreSameDimensions[T Element](a, b *Matrix[T]) bool {
 	return true
 }
 
+func (m Matrix[T]) IsIdentityMatrix() bool {
+	if m.rows != m.columns {
+		return false
+	}
+
+	var zero T = 0
+	var one T = 1
+
+	for i := uint(0); i < m.rows; i++ {
+		for j := uint(0); j < m.columns; j++ {
+			if i == j {
+				if m.reader.Read(i, i) != one {
+					return false
+				} else {
+					continue
+				}
+			} else {
+				if m.reader.Read(i, j) != zero {
+					return false
+				}
+			}
+		}
+	}
+
+	return true
+}
+
 func (m *Matrix[T]) Zero() *Matrix[T] {
 	var zero T
 	return m.Fill(zero)
